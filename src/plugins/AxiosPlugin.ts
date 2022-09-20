@@ -39,11 +39,14 @@ class AxiosPlugin implements SwPlugin {
     const Axios = installer.require('axios/lib/core/Axios');
     const _request = Axios.prototype.request;
 
-    Axios.prototype.request = function (url?: any, config?: any) {
-      if (typeof url === 'string') config = config ? { ...config, url } : { url };
-      else config = url ? { ...url } : {};
+    Axios.prototype.request = function (url?: any, _config?: any) {
+      if (typeof url === 'string') _config = _config ? { ..._config, url } : { url };
+      else _config = url ? { ...url } : {};
 
-      const { origin, host, pathname: operation } = new URL(config.url, config.baseURL); // TODO: this may throw invalid URL
+      // merged the default config, to fix the "invalid URL" issue
+      // TODO: needs a smarter merge()
+      const config = Object.assign({}, this.defaults, _config);
+      const { origin, host, pathname: operation } = new URL(config.url, config.baseURL);
       const method = (config.method || 'GET').toUpperCase();
       const span = ignoreHttpMethodCheck(method)
         ? DummySpan.create()
